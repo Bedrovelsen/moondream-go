@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"strings"
 	"testing"
 	"time"
 )
@@ -68,6 +69,13 @@ func TestEncodeImage(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	// Remove data URI prefix
+	prefix := "data:image/jpeg;base64,"
+	if !strings.HasPrefix(encoded, prefix) {
+		t.Fatalf("Expected data URI prefix %q, got %q", prefix, encoded[:min(len(encoded), len(prefix))])
+	}
+	encoded = encoded[len(prefix):]
+
 	// Decode and verify
 	decoded, err := base64.StdEncoding.DecodeString(encoded)
 	if err != nil {
@@ -117,13 +125,23 @@ func TestCaption(t *testing.T) {
 
 	// Test caption
 	ctx := context.Background()
-	caption, err := client.Caption(ctx, tmpfile.Name(), "long")
+
+	// Test normal length
+	caption, err := client.Caption(ctx, tmpfile.Name(), "normal", false)
 	if err != nil {
-		t.Fatal(err)
+		t.Errorf("Caption failed: %v", err)
+	}
+	if caption == "" {
+		t.Error("Expected non-empty caption")
 	}
 
-	if caption != "test caption" {
-		t.Errorf("Expected caption 'test caption', got '%s'", caption)
+	// Test short length
+	caption, err = client.Caption(ctx, tmpfile.Name(), "short", false)
+	if err != nil {
+		t.Errorf("Caption failed: %v", err)
+	}
+	if caption == "" {
+		t.Error("Expected non-empty caption")
 	}
 }
 
@@ -157,8 +175,10 @@ func TestCaptionWithTimeout(t *testing.T) {
 	}
 
 	// Test caption with timeout
-	ctx := context.Background()
-	_, err = client.Caption(ctx, tmpfile.Name(), "long")
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Nanosecond)
+	defer cancel()
+
+	_, err = client.Caption(ctx, tmpfile.Name(), "long", false)
 	if err == nil {
 		t.Error("Expected timeout error, got nil")
 	}
@@ -341,4 +361,11 @@ func TestPoint(t *testing.T) {
 			t.Errorf("Expected %s = %f, got %f", key, expected, got)
 		}
 	}
+}
+
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
 }

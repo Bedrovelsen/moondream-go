@@ -14,7 +14,7 @@ func main() {
     if len(os.Args) < 3 {
         log.Fatal("Usage: moondream <function> <image-path> [options]\n" +
             "Functions: caption, query, detect, point\n" +
-            "Example: moondream caption image.jpg")
+            "Example: moondream caption image.jpg [short|normal]")
     }
 
     apiKey := os.Getenv("mdAPI")
@@ -46,7 +46,15 @@ func main() {
 
     switch function {
     case "caption":
-        caption, err := client.Caption(ctx, imagePath, "long")
+        length := "normal"
+        if len(os.Args) > 3 {
+            if os.Args[3] == "short" || os.Args[3] == "normal" {
+                length = os.Args[3]
+            } else {
+                log.Fatal("Caption length must be either 'short' or 'normal'")
+            }
+        }
+        caption, err := client.Caption(ctx, imagePath, length, false)
         if err != nil {
             log.Fatalf("Error generating caption: %v", err)
         }

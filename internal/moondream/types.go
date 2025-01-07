@@ -33,9 +33,11 @@ type ClientConfig struct {
 type ClientOption func(*MoondreamClient)
 
 // CaptionRequest represents a request to generate an image caption
+// Length can be either "normal" (default) or "short"
 type CaptionRequest struct {
 	Image  string `json:"image_url"`
 	Length string `json:"length"`
+	Stream bool   `json:"stream"`
 }
 
 // CaptionResponse represents the response from a caption request

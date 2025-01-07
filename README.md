@@ -8,8 +8,6 @@ A Go client library and CLI tool for the [Moondream AI](https://moondream.ai) Mo
 - **Image Captioning**: Generate accurate and natural image captions
 - **Object Detection**: Detect and locate objects in images
 - **Object Pointing**: Get precise coordinate locations for objects in images
-- **Performance**: Efficient image handling with proper memory management
-- **Reliability**: Built-in retry mechanism with exponential backoff
 
 ## Prerequisites
 
@@ -93,7 +91,7 @@ func main() {
     defer cancel()
 
     // Example: Generate an image caption
-    caption, err := client.Caption(ctx, "path/to/image.jpg", "long")
+    caption, err := client.Caption(ctx, "path/to/image.jpg", "normal", false)
     if err != nil {
         panic(err)
     }
@@ -128,7 +126,11 @@ answer, err := client.Query(ctx, imagePath, "What color is the car?")
 ### Image Captioning (/caption)
 Generate accurate and natural image captions:
 ```go
-caption, err := client.Caption(ctx, imagePath, "long")
+// Default normal length caption
+caption, err := client.Caption(ctx, imagePath, "normal", false)
+
+// Short caption
+caption, err := client.Caption(ctx, imagePath, "short", false)
 ```
 
 ### Object Detection (/detect)
@@ -181,7 +183,7 @@ if err != nil {
 
 ## TODO
 
-Future improvements planned for this client:
+Future improvments
 
 1. **Streaming Support**
    - Add streaming response support for caption and query endpoints

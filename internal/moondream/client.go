@@ -69,7 +69,9 @@ func (c *MoondreamClient) encodeImage(imagePath string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("failed to read image file: %w", err)
 	}
-	return base64.StdEncoding.EncodeToString(imageData), nil
+
+	// Add data URI prefix for base64 encoded image
+	return fmt.Sprintf("data:image/jpeg;base64,%s", base64.StdEncoding.EncodeToString(imageData)), nil
 }
 
 func (c *MoondreamClient) sendRequest(ctx context.Context, endpoint string, payload interface{}, result interface{}) error {
@@ -135,15 +137,16 @@ func (c *MoondreamClient) sendRequest(ctx context.Context, endpoint string, payl
 	return fmt.Errorf("max retries exceeded: %w", lastErr)
 }
 
-func (c *MoondreamClient) Caption(ctx context.Context, imagePath string, length string) (string, error) {
+func (c *MoondreamClient) Caption(ctx context.Context, imagePath string, length string, stream bool) (string, error) {
 	encodedImage, err := c.encodeImage(imagePath)
 	if err != nil {
 		return "", err
 	}
 
 	req := CaptionRequest{
-		Image:  "data:image/jpeg;base64," + encodedImage,
+		Image:  encodedImage,
 		Length: length,
+		Stream: stream,
 	}
 
 	var resp CaptionResponse
@@ -161,7 +164,7 @@ func (c *MoondreamClient) Query(ctx context.Context, imagePath string, question 
 	}
 
 	req := QueryRequest{
-		Image:    "data:image/jpeg;base64," + encodedImage,
+		Image:    encodedImage,
 		Question: question,
 	}
 
@@ -180,7 +183,7 @@ func (c *MoondreamClient) Detect(ctx context.Context, imagePath string, object s
 	}
 
 	req := DetectRequest{
-		Image:  "data:image/jpeg;base64," + encodedImage,
+		Image:  encodedImage,
 		Object: object,
 	}
 
@@ -199,7 +202,7 @@ func (c *MoondreamClient) Point(ctx context.Context, imagePath string, object st
 	}
 
 	req := PointRequest{
-		Image:  "data:image/jpeg;base64," + encodedImage,
+		Image:  encodedImage,
 		Object: object,
 	}
 
